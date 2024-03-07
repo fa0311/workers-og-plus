@@ -21,25 +21,32 @@ export async function loadGoogleFont({
     .map((key) => `${key}=${params[key]}`)
     .join("&")}`;
 
-  // @ts-expect-error - CacheStorage would use dom lib, but we're referring to CF worker's lib
+  // @ts-ignore
   const cache = caches.default;
   const cacheKey = url;
-  let res = await cache.match(cacheKey);
 
-  if (!res) {
-    res = await fetch(`${url}`, {
-      headers: {
-        // construct user agent to get TTF font
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1",
-      },
-    });
+  const res = await (async () => {
+    const cacheRes = await cache.match(cacheKey);
+    if (cacheRes) {
+      return cacheRes;
+    } else {
+      const res = await fetch(`${url}`, {
+        headers: {
+          // construct user agent to get TTF font
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1",
+        },
+      });
+      if (res === undefined) {
+        throw new Error("Failed to fetch font");
+      }
 
-    res = new Response(res.body, res);
-    res.headers.append("Cache-Control", "s-maxage=3600");
-
-    await cache.put(cacheKey, res.clone());
-  }
+      const newRes = new Response(res.body as BodyInit, res);
+      newRes.headers.append("Cache-Control", "s-maxage=3600");
+      await cache.put(cacheKey, newRes.clone());
+      return newRes;
+    }
+  })();
 
   const body = await res.text();
   // Get the font URL from the CSS text
