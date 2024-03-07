@@ -1,8 +1,7 @@
+import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import satori, { init } from "satori/wasm";
 import initYoga from "yoga-wasm-web";
-import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import { parseHtml } from "./parseHtml";
-import { loadGoogleFont } from "./font";
 import type { ImageResponseOptions } from "./types";
 
 // @ts-expect-error .wasm files are not typed
@@ -65,22 +64,8 @@ export const og = async ({ element, options }: Props) => {
 
   // 3. Convert React Element to SVG with Satori
   const width = options?.width || 1200;
-  const height = options?.height || 630;
 
-  const svg = await satori(reactElement, {
-    width,
-    height,
-    fonts: !!options?.fonts?.length
-      ? options.fonts
-      : [
-          {
-            name: "Bitter",
-            data: await loadGoogleFont({ family: "Bitter", weight: 600 }),
-            weight: 500,
-            style: "normal",
-          },
-        ],
-  });
+  const svg = await satori(reactElement, options as any);
 
   const format = options?.format || "png";
 
