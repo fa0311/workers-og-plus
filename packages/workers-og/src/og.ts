@@ -1,5 +1,5 @@
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
-import satori, { init } from "satori/wasm";
+import satori, { SatoriOptions, init } from "satori/wasm";
 import initYoga from "yoga-wasm-web";
 import { parseHtml } from "./parseHtml";
 import type { ImageResponseOptions } from "./types";
@@ -65,7 +65,7 @@ export const og = async ({ element, options }: Props) => {
   // 3. Convert React Element to SVG with Satori
   const width = options?.width || 1200;
 
-  const svg = await satori(reactElement, options as any);
+  const svg = await satori(reactElement, options as SatoriOptions);
 
   const format = options?.format || "png";
 
